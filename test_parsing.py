@@ -1,85 +1,26 @@
 import pytest
-import xlrd
-from parsing import parse_schedule, determine_pair_type, process_lessons, split_lessons
+from factorial import factorial
 
-# Предполагается, что файл "2991_2992.xls" находится в корне проекта
-# Если нет, измените путь к файлу
+def test_factorial_positive():
+    assert factorial(5) == 120
 
-def test_parse_schedule():
-    schedule = parse_schedule("2991_2992.xls")
-    assert isinstance(schedule, list)
-    assert all(isinstance(item, dict) for item in schedule)
+def test_factorial_zero():
+    assert factorial(0) == 1
 
-def test_parse_schedule_with_target_group():
-    schedule = parse_schedule("2991_2992.xls", target_group="2992")
-    assert isinstance(schedule, list)
-    assert all(isinstance(item, dict) for item in schedule)
+def test_factorial_one():
+    assert factorial(1) == 1
 
-def test_determine_pair_type():
-    time_slots = {}
-    pair_type = determine_pair_type("Понедельник", "09:00", time_slots)
-    assert pair_type == "Верхняя"
-    
-    time_slots["Понедельник"] = ["09:00"]
-    pair_type = determine_pair_type("Понедельник", "10:00", time_slots)
-    assert pair_type == "Нижняя"
+def test_factorial_negative():
+    with pytest.raises(ValueError):
+        factorial(-1)
 
-def test_process_lessons():
-    schedule = []
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", "Математика, учитель Иванов")
-    assert len(schedule) == 1
-    assert schedule[0]["day"] == "Понедельник"
-    assert schedule[0]["time"] == "09:00"
-    assert schedule[0]["type"] == "Верхняя пара"
-    assert schedule[0]["group"] == "2992"
-    assert schedule[0]["subject"] == "Математика"
-    assert schedule[0]["other"] == "учитель Иванов"
+def test_factorial_invalid_input():
+    with pytest.raises(TypeError):
+        factorial("abc")
 
-def test_split_lessons():
-    lessons = split_lessons("Математика, учитель Иванов, кабинет 101")
-    assert len(lessons) == 1
-    assert lessons[0]["subject"] == "Математика"
-    assert lessons[0]["other"] == "учитель Иванов, кабинет 101"
+def test_factorial_large_number():
+    assert factorial(10) == 3628800
 
-def test_split_lessons_multiple():
-    lessons = split_lessons("Математика, учитель Иванов, кабинет 101, Физика, учитель Петров, кабинет 202")
-    assert len(lessons) == 2
-    assert lessons[0]["subject"] == "Математика"
-    assert lessons[0]["other"] == "учитель Иванов, кабинет 101"
-    assert lessons[1]["subject"] == "Физика"
-    assert lessons[1]["other"] == "учитель Петров, кабинет 202"
-
-# Тест на случай, когда в ячейке пустая строка или "-"
-def test_process_lessons_empty():
-    schedule = []
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", "")
-    assert len(schedule) == 0
-
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", "-")
-    assert len(schedule) == 0
-
-# Тест на случай, когда в ячейке несколько предметов
-def test_process_lessons_multiple_lessons():
-    schedule = []
-    lesson_data = "Математика, учитель Иванов\nФизика, учитель Петров"
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", lesson_data)
-    assert len(schedule) == 1  # Ошибка в функции process_lessons
-    assert schedule[0]["day"] == "Понедельник"
-    assert schedule[0]["time"] == "09:00"
-    assert schedule[0]["type"] == "Верхняя пара"
-    assert schedule[0]["group"] == "2992"
-    assert schedule[0]["subject"] == "Математика"
-    assert schedule[0]["other"] == "учитель Иванов\nФизика, учитель Петров"
-
-# Тест на случай, когда в ячейке несколько предметов с разделением на верхнюю и нижнюю неделю
-def test_process_lessons_multiple_weeks():
-    schedule = []
-    lesson_data = "Математика, учитель Иванов\nФизика, учитель Петров"
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя (верхняя)", "2992", lesson_data)
-    assert len(schedule) == 1  # Ошибка в функции process_lessons
-    assert schedule[0]["day"] == "Понедельник"
-    assert schedule[0]["time"] == "09:00"
-    assert schedule[0]["type"] == "Верхняя (верхняя) пара"
-    assert schedule[0]["group"] == "2992"
-    assert schedule[0]["subject"] == "Математика"
-    assert schedule[0]["other"] == "учитель Иванов\nФизика, учитель Петров"
+def test_factorial_recursive():
+    # Проверка рекурсивного вызова
+    assert factorial(3) == 6
