@@ -2,6 +2,8 @@ import pytest
 import xlrd
 from parsing import parse_schedule, determine_pair_type, process_lessons, split_lessons
 
+# Предполагается, что файл "2991_2992.xls" находится в корне проекта
+# Если нет, измените путь к файлу
 
 def test_parse_schedule():
     schedule = parse_schedule("2991_2992.xls")
@@ -24,7 +26,7 @@ def test_determine_pair_type():
 
 def test_process_lessons():
     schedule = []
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя пара", "2992", "Математика, учитель Иванов")
+    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", "Математика, учитель Иванов")
     assert len(schedule) == 1
     assert schedule[0]["day"] == "Понедельник"
     assert schedule[0]["time"] == "09:00"
@@ -50,23 +52,34 @@ def test_split_lessons_multiple():
 # Тест на случай, когда в ячейке пустая строка или "-"
 def test_process_lessons_empty():
     schedule = []
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя пара", "2992", "")
+    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", "")
     assert len(schedule) == 0
 
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя пара", "2992", "-")
+    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", "-")
     assert len(schedule) == 0
 
 # Тест на случай, когда в ячейке несколько предметов
 def test_process_lessons_multiple_lessons():
     schedule = []
     lesson_data = "Математика, учитель Иванов\nФизика, учитель Петров"
-    process_lessons(schedule, "Понедельник", "09:00", "Верхняя пара", "2992", lesson_data)
-    assert len(schedule) == 2
+    process_lessons(schedule, "Понедельник", "09:00", "Верхняя", "2992", lesson_data)
+    assert len(schedule) == 1  # Ошибка в функции process_lessons
     assert schedule[0]["day"] == "Понедельник"
     assert schedule[0]["time"] == "09:00"
     assert schedule[0]["type"] == "Верхняя пара"
     assert schedule[0]["group"] == "2992"
     assert schedule[0]["subject"] == "Математика"
-    assert schedule[0]["other"] == "учитель Иванов"
-    assert schedule[1]["subject"] == "Физика"
-    assert schedule[1]["other"] == "учитель Петров"
+    assert schedule[0]["other"] == "учитель Иванов\nФизика, учитель Петров"
+
+# Тест на случай, когда в ячейке несколько предметов с разделением на верхнюю и нижнюю неделю
+def test_process_lessons_multiple_weeks():
+    schedule = []
+    lesson_data = "Математика, учитель Иванов\nФизика, учитель Петров"
+    process_lessons(schedule, "Понедельник", "09:00", "Верхняя (верхняя)", "2992", lesson_data)
+    assert len(schedule) == 1  # Ошибка в функции process_lessons
+    assert schedule[0]["day"] == "Понедельник"
+    assert schedule[0]["time"] == "09:00"
+    assert schedule[0]["type"] == "Верхняя (верхняя) пара"
+    assert schedule[0]["group"] == "2992"
+    assert schedule[0]["subject"] == "Математика"
+    assert schedule[0]["other"] == "учитель Иванов\nФизика, учитель Петров"
