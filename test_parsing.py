@@ -1,5 +1,5 @@
 import pytest
-from factorial import factorial
+from parsing import factorial
 
 def test_factorial_positive():
     assert factorial(5) == 120
